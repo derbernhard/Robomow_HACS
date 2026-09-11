@@ -1,0 +1,11 @@
+{
+  "domain": "robomow_bridge",
+  "name": "Robomow HTTP Bridge",
+  "version": "0.3.0",
+  "documentation": "https://github.com/derbernhard/robomow-http-bridge",
+  "issue_tracker": "https://github.com/derbernhard/robomow-http-bridge/issues",
+  "config_flow": true,
+  "iot_class": "local_polling",
+  "requirements": [],
+  "codeowners": []
+}
