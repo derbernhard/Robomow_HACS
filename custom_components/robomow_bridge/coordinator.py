@@ -47,6 +47,7 @@ class RobomowCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.api = api
         self._cycle = 0
         self._once_cache: dict[str, Any] = {}
+        self._force_once = False
         self._command_lock = asyncio.Lock()
 
     async def _async_update_data(self) -> dict[str, Any]:
