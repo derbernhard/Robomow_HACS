@@ -1,0 +1,39 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect Robomow bridge",
+        "description": "Enter the local bridge connection details.",
+        "data": {
+          "host": "Host or IP address",
+          "username": "Username",
+          "password": "Password",
+          "scan_interval": "Polling interval (seconds)",
+          "rain_sensor": "Rain sensor",
+          "dry_delay_minutes": "Drying delay (minutes)",
+          "rain_go_home": "Send the mower home when it starts raining"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not connect to the bridge.",
+      "invalid_auth": "Username or password rejected by the bridge."
+    },
+    "abort": {
+      "already_configured": "This bridge is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Robomow bridge options",
+        "data": {
+          "scan_interval": "Polling interval (seconds)",
+          "rain_sensor": "Rain sensor",
+          "dry_delay_minutes": "Drying delay (minutes)",
+          "rain_go_home": "Send the mower home when it starts raining"
+        }
+      }
+    }
+  }
+}

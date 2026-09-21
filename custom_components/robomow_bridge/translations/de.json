@@ -1,1 +1,39 @@
-
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Robomow-Bridge verbinden",
+        "description": "Lokale Zugangsdaten der Bridge eingeben.",
+        "data": {
+          "host": "Host oder IP-Adresse",
+          "username": "Benutzername",
+          "password": "Passwort",
+          "scan_interval": "Abfrageintervall (Sekunden)",
+          "rain_sensor": "Regensensor",
+          "dry_delay_minutes": "Trocknungsverzögerung (Minuten)",
+          "rain_go_home": "Bei Regenbeginn nach Hause schicken"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung zur Bridge fehlgeschlagen.",
+      "invalid_auth": "Benutzername oder Passwort wurde von der Bridge abgelehnt."
+    },
+    "abort": {
+      "already_configured": "Diese Bridge ist bereits eingerichtet."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Optionen der Robomow-Bridge",
+        "data": {
+          "scan_interval": "Abfrageintervall (Sekunden)",
+          "rain_sensor": "Regensensor",
+          "dry_delay_minutes": "Trocknungsverzögerung (Minuten)",
+          "rain_go_home": "Bei Regenbeginn nach Hause schicken"
+        }
+      }
+    }
+  }
+}
