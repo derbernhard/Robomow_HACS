@@ -1,11 +1,14 @@
 {
   "domain": "robomow_bridge",
   "name": "Robomow HTTP Bridge",
-  "version": "0.3.0",
-  "documentation": "https://github.com/derbernhard/robomow-http-bridge",
-  "issue_tracker": "https://github.com/derbernhard/robomow-http-bridge/issues",
+  "codeowners": [
+    "@derbernhard"
+  ],
   "config_flow": true,
+  "documentation": "https://github.com/derbernhard/Robomow_HACS",
+  "integration_type": "device",
   "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/derbernhard/Robomow_HACS/issues",
   "requirements": [],
-  "codeowners": []
+  "version": "0.4.0"
 }

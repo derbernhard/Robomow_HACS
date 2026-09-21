@@ -1,51 +1,157 @@
+"""Rain handling: send the mower home and suspend its weekly schedule."""
+
 from __future__ import annotations
+
+import logging
+from collections.abc import Callable
+from typing import Any
+
 from homeassistant.const import STATE_OFF, STATE_ON
-from homeassistant.helpers.event import async_call_later, async_track_state_change_event
+from homeassistant.core import Event, HomeAssistant
+from homeassistant.helpers.event import (
+    async_call_later,
+    async_track_state_change_event,
+)
 from homeassistant.helpers.storage import Store
 
-STORE_VERSION=1
-STORE_KEY_PREFIX='robomow_bridge_rain_'
-class RobomowRainManager:
-    def __init__(self,hass,coordinator,entry_id,entity_id,dry_delay_minutes):
-        self.hass=hass; self.coordinator=coordinator; self.entity_id=entity_id; self.dry_delay_seconds=max(0,dry_delay_minutes)*60
-        self.rain_disabled=False; self._listeners=[]; self._cancel_timer=None; self._callbacks=[]
-        self._store=Store(hass,STORE_VERSION,f'{STORE_KEY_PREFIX}{entry_id}')
-    async def async_start(self):
-        saved=await self._store.async_load() or {}; self.rain_disabled=bool(saved.get('rain_disabled',False))
-        self._listeners.append(async_track_state_change_event(self.hass,[self.entity_id],self._state_changed))
-        state=self.hass.states.get(self.entity_id)
-        if state and state.state==STATE_ON: await self._handle_wet()
-        elif state and state.state==STATE_OFF and self.rain_disabled: self._schedule_dry()
-    async def async_stop(self):
-        for unsub in self._listeners: unsub()
-        self._listeners.clear(); self._cancel_dry_timer()
-    def add_listener(self,callback): self._callbacks.append(callback); return lambda:self._callbacks.remove(callback)
-    async def _set_flag(self,value):
-        if self.rain_disabled==value: return
-        self.rain_disabled=value; await self._store.async_save({'rain_disabled':value})
-        for cb in list(self._callbacks): cb()
-    def _schedule_dry(self):
-        self._cancel_dry_timer()
-        if self.dry_delay_seconds==0: self.hass.async_create_task(self._enable_if_still_dry())
-        else: self._cancel_timer=async_call_later(self.hass,self.dry_delay_seconds,self._dry_timer_finished)
-    def _cancel_dry_timer(self):
-        if self._cancel_timer: self._cancel_timer(); self._cancel_timer=None
-    async def _state_changed(self,event):
-        ns=event.data.get('new_state')
-        if not ns:return
-        if ns.state==STATE_ON: await self._handle_wet()
-        elif ns.state==STATE_OFF and self.rain_disabled: self._schedule_dry()
-    async def _handle_wet(self):
-        self._cancel_dry_timer()
-        schedule_on=str(self.coordinator.data.get('once',{}).get('50','0'))=='1'
-        if schedule_on:
-            await self._ensure_ble(); await self.coordinator.async_command(50,0); await self._set_flag(True)
-        elif not self.rain_disabled:
-            await self._set_flag(False)
-    async def _dry_timer_finished(self,_now): self._cancel_timer=None; await self._enable_if_still_dry()
-    async def _enable_if_still_dry(self):
-        if not self.rain_disabled or not self.hass.states.is_state(self.entity_id,STATE_OFF): return
-        await self._ensure_ble(); await self.coordinator.async_command(50,1); await self._set_flag(False)
-    async def _ensure_ble(self):
-        if str(self.coordinator.data.get('renew',{}).get('cBLEsw','')).lower()!='lightgreen': await self.coordinator.api.command(250,1)
+from .api import RobomowApiError
+from .const import CMD_GO_HOME, CMD_SCHEDULE
+from .coordinator import RobomowCoordinator
 
+_LOGGER = logging.getLogger(__name__)
+
+STORE_VERSION = 1
+STORE_KEY_PREFIX = "robomow_bridge_rain_"
+
+
+class RobomowRainManager:
+    """Replicate the rain automations: go home + schedule off, re-enable when dry."""
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        coordinator: RobomowCoordinator,
+        entry_id: str,
+        entity_id: str,
+        dry_delay_minutes: int,
+        go_home: bool = True,
+    ) -> None:
+        """Initialise the manager."""
+        self.hass = hass
+        self.coordinator = coordinator
+        self.entity_id = entity_id
+        self.dry_delay_seconds = max(0, dry_delay_minutes) * 60
+        self.go_home = go_home
+        self.rain_disabled = False
+
+        self._listeners: list[Callable[[], None]] = []
+        self._callbacks: list[Callable[[], None]] = []
+        self._cancel_timer: Callable[[], None] | None = None
+        self._store: Store[dict[str, Any]] = Store(
+            hass, STORE_VERSION, f"{STORE_KEY_PREFIX}{entry_id}"
+        )
+
+    async def async_start(self) -> None:
+        """Restore the saved state and start watching the rain sensor."""
+        saved = await self._store.async_load() or {}
+        self.rain_disabled = bool(saved.get("rain_disabled", False))
+
+        self._listeners.append(
+            async_track_state_change_event(
+                self.hass, [self.entity_id], self._state_changed
+            )
+        )
+
+        state = self.hass.states.get(self.entity_id)
+        if state is None:
+            return
+        if state.state == STATE_ON:
+            await self._handle_wet()
+        elif state.state == STATE_OFF and self.rain_disabled:
+            self._schedule_dry()
+
+    async def async_stop(self) -> None:
+        """Stop watching and cancel any pending timer."""
+        for unsub in self._listeners:
+            unsub()
+        self._listeners.clear()
+        self._cancel_dry_timer()
+
+    def add_listener(self, callback: Callable[[], None]) -> Callable[[], None]:
+        """Register a callback fired whenever the rain flag changes."""
+        self._callbacks.append(callback)
+
+        def remove() -> None:
+            if callback in self._callbacks:
+                self._callbacks.remove(callback)
+
+        return remove
+
+    async def _set_flag(self, value: bool) -> None:
+        """Persist the rain flag and notify listeners."""
+        if self.rain_disabled == value:
+            return
+        self.rain_disabled = value
+        await self._store.async_save({"rain_disabled": value})
+        for callback in list(self._callbacks):
+            callback()
+
+    def _schedule_dry(self) -> None:
+        """Start the drying timer."""
+        self._cancel_dry_timer()
+        if self.dry_delay_seconds == 0:
+            self.hass.async_create_task(self._enable_if_still_dry())
+        else:
+            self._cancel_timer = async_call_later(
+                self.hass, self.dry_delay_seconds, self._dry_timer_finished
+            )
+
+    def _cancel_dry_timer(self) -> None:
+        """Cancel a pending drying timer."""
+        if self._cancel_timer:
+            self._cancel_timer()
+            self._cancel_timer = None
+
+    async def _state_changed(self, event: Event) -> None:
+        """React to the rain sensor changing state."""
+        new_state = event.data.get("new_state")
+        if new_state is None:
+            return
+        if new_state.state == STATE_ON:
+            await self._handle_wet()
+        elif new_state.state == STATE_OFF and self.rain_disabled:
+            self._schedule_dry()
+
+    async def _handle_wet(self) -> None:
+        """It started raining: send the mower home and suspend the schedule."""
+        self._cancel_dry_timer()
+        try:
+            if self.go_home:
+                await self.coordinator.async_command(
+                    CMD_GO_HOME, 1, require_ble=True, refresh=False
+                )
+            if self.coordinator.schedule_on:
+                await self.coordinator.async_command(
+                    CMD_SCHEDULE, 0, require_ble=True
+                )
+                await self._set_flag(True)
+        except RobomowApiError as err:
+            _LOGGER.error("Could not react to rain: %s", err)
+
+    async def _dry_timer_finished(self, _now: Any) -> None:
+        """The drying delay elapsed."""
+        self._cancel_timer = None
+        await self._enable_if_still_dry()
+
+    async def _enable_if_still_dry(self) -> None:
+        """Re-enable the schedule, but only if it is still dry."""
+        if not self.rain_disabled:
+            return
+        if not self.hass.states.is_state(self.entity_id, STATE_OFF):
+            return
+        try:
+            await self.coordinator.async_command(CMD_SCHEDULE, 1, require_ble=True)
+        except RobomowApiError as err:
+            _LOGGER.error("Could not re-enable the schedule: %s", err)
+            return
+        await self._set_flag(False)
