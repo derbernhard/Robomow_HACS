@@ -1,1 +1,171 @@
-
+# Robomow MC500 -- Lovelace card for the robomow_bridge integration.
+# The four driving buttons use custom:button-card (install it via HACS);
+# replace them with plain "type: button" cards if you do not want that dependency.
+type: vertical-stack
+cards:
+  - type: entities
+    title: Robomow MC500
+    show_header_toggle: false
+    state_color: true
+    entities:
+      - entity: switch.robomow_ble
+        icon: mdi:bluetooth
+        name: Bluetooth
+      - entity: sensor.robomow_battery
+        icon: mdi:battery-medium
+        name: Batterieladung
+      - entity: sensor.robomow_status
+        icon: mdi:mower
+        name: Status
+      - entity: sensor.robomow_current_zone
+        icon: mdi:texture
+        name: Aktuelle Zone
+      - entity: sensor.robomow_stop_reason
+        icon: mdi:stop-circle-outline
+        name: Stopgrund
+      - entity: sensor.robomow_time_left
+        icon: mdi:timer-outline
+        name: Verbleibende Zeit
+      - entity: sensor.robomow_next_start
+        icon: mdi:skip-next-circle-outline
+        name: Nächster Start
+      - entity: sensor.robomow_moisture
+        icon: mdi:water-outline
+        name: Feuchtigkeit
+      - entity: sensor.robomow_percentage_cut
+        icon: mdi:grass
+        name: Gemähte Fläche
+      - entity: sensor.robomow_rssi
+        icon: mdi:wifi
+        name: Wlan Signalstärke
+      - entity: switch.robomow_weekly_schedule
+        icon: mdi:calendar
+        name: Wochenprogramm
+      - entity: binary_sensor.robomow_schedule_disabled_by_rain
+        icon: mdi:weather-pouring
+        name: Wegen Regen pausiert
+  - type: horizontal-stack
+    cards:
+      - show_name: true
+        show_icon: true
+        type: button
+        icon: mdi:shape-rectangle-plus
+        name: Kante mähen
+        tap_action:
+          action: perform-action
+          perform_action: button.press
+          target:
+            entity_id: button.robomow_mow_edge
+      - show_name: true
+        show_icon: true
+        type: button
+        icon: mdi:checkbox-intermediate-variant
+        name: Zone wechseln
+        tap_action:
+          action: perform-action
+          perform_action: button.press
+          target:
+            entity_id: button.robomow_change_zone
+      - show_name: true
+        show_icon: true
+        type: button
+        icon: mdi:texture-box
+        name: Fläche mähen
+        tap_action:
+          action: perform-action
+          perform_action: button.press
+          target:
+            entity_id: button.robomow_mow_area
+  - type: horizontal-stack
+    cards:
+      - show_name: true
+        show_icon: true
+        type: button
+        icon: mdi:home-variant-outline
+        name: Home
+        tap_action:
+          action: perform-action
+          perform_action: button.press
+          target:
+            entity_id: button.robomow_go_home
+      - show_name: true
+        show_icon: true
+        type: custom:button-card
+        icon: mdi:arrow-up-bold-box
+        name: vor
+        tap_action:
+          action: perform-action
+          perform_action: button.press
+          target:
+            entity_id: button.robomow_forward
+        hold_action:
+          action: perform-action
+          perform_action: button.press
+          repeat: 1000
+          target:
+            entity_id: button.robomow_forward
+      - show_name: true
+        show_icon: true
+        type: button
+        icon: mdi:stop-circle-outline
+        name: Stopp
+        tap_action:
+          action: perform-action
+          perform_action: button.press
+          target:
+            entity_id: button.robomow_stop
+        hold_action:
+          action: perform-action
+          perform_action: homeassistant.update_entity
+          target:
+            entity_id: sensor.robomow_status
+  - type: horizontal-stack
+    cards:
+      - show_name: true
+        show_icon: true
+        type: custom:button-card
+        icon: mdi:arrow-left-bold-box
+        name: links
+        tap_action:
+          action: perform-action
+          perform_action: button.press
+          target:
+            entity_id: button.robomow_left
+        hold_action:
+          action: perform-action
+          perform_action: button.press
+          repeat: 1000
+          target:
+            entity_id: button.robomow_left
+      - show_name: true
+        show_icon: true
+        type: custom:button-card
+        icon: mdi:arrow-down-bold-box
+        name: zurück
+        tap_action:
+          action: perform-action
+          perform_action: button.press
+          target:
+            entity_id: button.robomow_backward
+        hold_action:
+          action: perform-action
+          perform_action: button.press
+          repeat: 1000
+          target:
+            entity_id: button.robomow_backward
+      - show_name: true
+        show_icon: true
+        type: custom:button-card
+        icon: mdi:arrow-right-bold-box
+        name: rechts
+        tap_action:
+          action: perform-action
+          perform_action: button.press
+          target:
+            entity_id: button.robomow_right
+        hold_action:
+          action: perform-action
+          perform_action: button.press
+          repeat: 1000
+          target:
+            entity_id: button.robomow_right
