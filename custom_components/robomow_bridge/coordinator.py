@@ -59,8 +59,13 @@ class RobomowCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """
         try:
             renew = await self.api.renew()
-            if not self._once_cache or self._cycle % ONCE_EVERY_N_CYCLES == 0:
+            if (
+                self._force_once
+                or not self._once_cache
+                or self._cycle % ONCE_EVERY_N_CYCLES == 0
+            ):
                 self._once_cache = await self.api.once()
+                self._force_once = False
             self._cycle += 1
         except RobomowAuthError as err:
             raise ConfigEntryAuthFailed(str(err)) from err
@@ -120,6 +125,9 @@ class RobomowCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if require_ble:
                 await self.async_ensure_ble()
             await self.api.command(key, value)
+
+        if key == CMD_SCHEDULE:
+            self._force_once = True
 
         if refresh:
             await self.async_refresh()
