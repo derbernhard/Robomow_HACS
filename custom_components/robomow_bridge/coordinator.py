@@ -16,6 +16,7 @@ from .api import RobomowApi, RobomowApiError, RobomowAuthError
 from .const import (
     BLE_ON_VALUE,
     BLE_WAIT_SECONDS,
+    CMD_SCHEDULE,
     CMD_BLE,
     DOMAIN,
     KEY_BLE_STATE,
