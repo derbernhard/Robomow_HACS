@@ -1,4 +1,4 @@
-# Robomow HTTP Bridge for Home Assistant
+# Robomow Mähspitzel HTTP Bridge for Home Assistant
 
 Local Home Assistant integration for a Robomow HTTP/BLE bridge exposing
 \`/renew\`, \`/once\` and \`/setcmds\`.
