@@ -23,7 +23,6 @@ _LOGGER = logging.getLogger(__name__)
 STORE_VERSION = 1
 STORE_KEY_PREFIX = "robomow_bridge_rain_"
 
-
 class RobomowRainManager:
     """Replicate the rain automations: go home + schedule off, re-enable when dry."""
 
