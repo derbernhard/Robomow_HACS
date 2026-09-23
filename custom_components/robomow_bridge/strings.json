@@ -35,5 +35,146 @@
         }
       }
     }
+  },
+  "entity": {
+    "sensor": {
+      "battery": {
+        "name": "Battery level"
+      },
+      "status": {
+        "name": "Status"
+      },
+      "current_zone": {
+        "name": "Current zone"
+      },
+      "next_zone": {
+        "name": "Next zone"
+      },
+      "dock_proximity": {
+        "name": "Dock proximity"
+      },
+      "next_start": {
+        "name": "Next start"
+      },
+      "time_left": {
+        "name": "Time left"
+      },
+      "percentage_cut": {
+        "name": "Percentage cut"
+      },
+      "moisture": {
+        "name": "Moisture"
+      },
+      "schedule_mode": {
+        "name": "Schedule mode",
+        "state": {
+          "off": "Off",
+          "daily": "Daily",
+          "weekly_1x": "Once a week",
+          "weekly_2x": "Twice a week",
+          "unknown": "Unknown"
+        }
+      },
+      "last_stop_reason": {
+        "name": "Last stop reason",
+        "state": {
+          "stop_button_pressed": "Stop button pressed",
+          "started_outside_plot": "Started outside the plot",
+          "key_pressed_warmup": "Key pressed during warm-up",
+          "bumper_pressed_warmup": "Bumper pressed during warm-up",
+          "front_wheel_problem_warmup": "Front wheel problem during warm-up",
+          "no_charging_voltage": "No charging voltage detected",
+          "setup_stopped_base_test": "Setup stopped during base position test",
+          "setup_stopped_obstacle": "Setup stopped for an obstacle",
+          "drive_overheat": "Drive overheat",
+          "base_problem": "Base problem",
+          "drive_overheat_terminated": "Drive overheat, operation terminated",
+          "handle_lifted": "Carrying handle lifted",
+          "handle_lifted_warmup": "Carrying handle lifted during warm-up",
+          "drive_overcurrent_scan": "Drive over-current while scanning",
+          "drive_overcurrent_manual": "Drive over-current in manual mode",
+          "stuck_in_place": "Stuck in place",
+          "tilt_before_lifting": "Tilt detected",
+          "system_switch_off": "System switch turned off",
+          "mow_overheat": "Mower overheat",
+          "mow_overcurrent": "Mower over-current",
+          "mow_overcurrent_remote": "Mower over-current in remote control",
+          "no_wire_signal": "No wire signal during automatic operation",
+          "mow_overheat_manual": "Mower overheat in manual mode",
+          "cross_outside": "Crossed outside the boundary",
+          "front_wheel_problem": "Front wheel problem",
+          "inactive_time": "Inactive time reached",
+          "mowing_time_reached": "Mowing time in zone reached",
+          "rain_detected": "Rain detected",
+          "edge_terminate_test": "Edge terminate test finished",
+          "remote_safety_button": "Remote control safety button pressed",
+          "stop_button_manual": "Stop button pressed in manual mode",
+          "auto_stopped_searching_base": "Automatic stopped, searching for the base station",
+          "no_wire_signal_driving": "No wire signal while driving",
+          "battery_discharge_time_exceeded": "Battery discharge time exceeded",
+          "going_to_base": "Going to the charging station",
+          "time_to_charge": "Time to charge",
+          "stopped_from_app": "Stopped from the mobile app",
+          "drive_overcurrent_scan_5": "Drive over-current while scanning"
+        }
+      },
+      "rssi": {
+        "name": "RSSI"
+      },
+      "serial_number": {
+        "name": "Serial number"
+      }
+    },
+    "switch": {
+      "ble": {
+        "name": "BLE"
+      },
+      "weekly_schedule": {
+        "name": "Weekly schedule"
+      }
+    },
+    "binary_sensor": {
+      "rain_disabled": {
+        "name": "Schedule disabled by rain"
+      }
+    },
+    "button": {
+      "mow_edge": {
+        "name": "Mow edge"
+      },
+      "mow_area": {
+        "name": "Mow area"
+      },
+      "go_home": {
+        "name": "Go home"
+      },
+      "stop": {
+        "name": "Stop"
+      },
+      "start": {
+        "name": "Start"
+      },
+      "change_zone": {
+        "name": "Change zone"
+      },
+      "forward": {
+        "name": "Forward"
+      },
+      "backward": {
+        "name": "Backward"
+      },
+      "left": {
+        "name": "Left"
+      },
+      "right": {
+        "name": "Right"
+      },
+      "refresh_telemetry": {
+        "name": "Refresh telemetry"
+      },
+      "refresh_events": {
+        "name": "Refresh events"
+      }
+    }
   }
 }
