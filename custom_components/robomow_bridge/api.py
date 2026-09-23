@@ -14,11 +14,14 @@ _LOGGER = logging.getLogger(__name__)
 REQUEST_TIMEOUT = 15
 LARGE_REQUEST_TIMEOUT = 30
 
+
 class RobomowApiError(Exception):
     """The bridge could not be reached or returned an error."""
 
+
 class RobomowAuthError(RobomowApiError):
     """The bridge rejected the supplied credentials."""
+
 
 class RobomowApi:
     """Wrapper around the bridge's JSON endpoints."""
@@ -28,7 +31,7 @@ class RobomowApi:
     ) -> None:
         """Initialise the client."""
         self._session = session
-        self._base = f"[{host.strip().rstrip(](http://{host.strip().rstrip()'/')}"
+        self._base = f"http://{host.strip().rstrip('/')}"
         self._auth = BasicAuth(username, password)
 
     async def _get(self, path: str, timeout: int = REQUEST_TIMEOUT) -> Any:

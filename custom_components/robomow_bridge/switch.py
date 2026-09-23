@@ -13,6 +13,7 @@ from .const import CMD_BLE, CMD_SCHEDULE
 from .coordinator import RobomowCoordinator
 from .entity import RobomowEntity
 
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -26,6 +27,7 @@ async def async_setup_entry(
             RobomowScheduleSwitch(coordinator, entry),
         ]
     )
+
 
 class RobomowBleSwitch(RobomowEntity, SwitchEntity):
     """Control the BLE link between bridge and mower."""
@@ -49,6 +51,7 @@ class RobomowBleSwitch(RobomowEntity, SwitchEntity):
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Tear the BLE link down."""
         await self.coordinator.async_command(CMD_BLE, 0)
+
 
 class RobomowScheduleSwitch(RobomowEntity, SwitchEntity):
     """Enable or disable the mower's weekly schedule."""

@@ -12,6 +12,7 @@ from .coordinator import RobomowCoordinator
 from .entity import RobomowEntity
 from .rain import RobomowRainManager
 
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -21,6 +22,7 @@ async def async_setup_entry(
     manager = hass.data.get(DATA_RAIN_MANAGERS, {}).get(entry.entry_id)
     if manager:
         async_add_entities([RobomowRainDisabled(entry.runtime_data, entry, manager)])
+
 
 class RobomowRainDisabled(RobomowEntity, BinarySensorEntity):
     """True while the schedule is suspended because of rain."""

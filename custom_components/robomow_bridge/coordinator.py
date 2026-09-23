@@ -30,7 +30,8 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 # German number format: "." is the thousands separator, "," the decimal point.
-_THOUSANDS = re.compile(r"^\d{1,3}(\.\d{3})+$")
+_THOUSANDS = re.compile(r"^\\d{1,3}(\\.\\d{3})+$")
+
 
 def parse_number(raw: object) -> float | None:
     """Parse the bridge's German-formatted numbers.
@@ -42,11 +43,11 @@ def parse_number(raw: object) -> float | None:
     if raw is None:
         return None
 
-    text = str(raw).replace("\xa0", " ").strip()
+    text = str(raw).replace("\\xa0", " ").strip()
     if not text:
         return None
 
-    text = re.sub(r"[^0-9.,\-]", "", text)
+    text = re.sub(r"[^0-9.,\\-]", "", text)
     if not text:
         return None
 
@@ -63,6 +64,7 @@ def parse_number(raw: object) -> float | None:
         return float(text)
     except (TypeError, ValueError):
         return None
+
 
 class RobomowCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Poll the bridge, serialise commands and hold on-demand payloads."""
@@ -235,9 +237,9 @@ class RobomowCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if f"m{index + 1}" not in raw:
                 break
 
-            reason_raw = str(raw.get(f"m{index + 2}", "")).replace("\xa0", " ").strip()
+            reason_raw = str(raw.get(f"m{index + 2}", "")).replace("\\xa0", " ").strip()
             date = str(raw.get(f"m{index + 1}", "")).strip()
-            if not re.match(r"^\d{2}\.\d{2}\.\d{4}$", date):
+            if not re.match(r"^\\d{2}\\.\\d{2}\\.\\d{4}$", date):
                 break
 
             events.append(
@@ -246,7 +248,7 @@ class RobomowCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     "time": str(raw.get(f"m{index}", "")).strip(),
                     "reason": reason_raw,
                     "code": stop_reason_code(reason_raw),
-                    "activity": str(raw.get(f"m{index + 4}", "")).replace("\xa0", " ").strip(),
+                    "activity": str(raw.get(f"m{index + 4}", "")).replace("\\xa0", " ").strip(),
                     "zone": str(raw.get(f"m{index + 5}", "")).strip(),
                     "battery": parse_number(raw.get(f"m{index + 3}")),
                 }

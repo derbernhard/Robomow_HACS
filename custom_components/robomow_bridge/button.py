@@ -24,6 +24,7 @@ from .const import (
 from .coordinator import RobomowCoordinator
 from .entity import RobomowEntity
 
+
 @dataclass(frozen=True, kw_only=True)
 class RobomowButtonDescription(ButtonEntityDescription):
     """Describe one button."""
@@ -32,6 +33,7 @@ class RobomowButtonDescription(ButtonEntityDescription):
     value: int | None = None
     refresh: bool = True
     on_demand: str | None = None
+
 
 BUTTONS: tuple[RobomowButtonDescription, ...] = (
     RobomowButtonDescription(
@@ -130,6 +132,7 @@ BUTTONS: tuple[RobomowButtonDescription, ...] = (
     ),
 )
 
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -140,6 +143,7 @@ async def async_setup_entry(
     async_add_entities(
         RobomowButton(coordinator, entry, description) for description in BUTTONS
     )
+
 
 class RobomowButton(RobomowEntity, ButtonEntity):
     """A single command sent to the bridge."""

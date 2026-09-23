@@ -27,9 +27,11 @@ from .rain import RobomowRainManager
 
 _LOGGER = logging.getLogger(__name__)
 
+
 def option(entry: ConfigEntry, key: str, default: Any) -> Any:
     """Return an option, falling back to the value stored at setup time."""
     return entry.options.get(key, entry.data.get(key, default))
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Robomow HTTP Bridge from a config entry."""
@@ -63,6 +65,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
     return True
 
+
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
@@ -70,6 +73,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if manager:
         await manager.async_stop()
     return unload_ok
+
 
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Reload the entry after the options were changed."""

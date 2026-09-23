@@ -29,6 +29,7 @@ from .const import (
     DOMAIN,
 )
 
+
 def build_options_schema(current: dict[str, Any]) -> vol.Schema:
     """Build the schema for the options shared by both flows."""
     fields: dict[Any, Any] = {
@@ -63,6 +64,7 @@ def build_options_schema(current: dict[str, Any]) -> vol.Schema:
     ] = selector.BooleanSelector()
 
     return vol.Schema(fields)
+
 
 class RobomowConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle the initial setup."""
@@ -116,6 +118,7 @@ class RobomowConfigFlow(ConfigFlow, domain=DOMAIN):
     def async_get_options_flow(config_entry: ConfigEntry) -> RobomowOptionsFlow:
         """Return the options flow handler."""
         return RobomowOptionsFlow()
+
 
 class RobomowOptionsFlow(OptionsFlow):
     """Allow changing the polling and rain settings after setup."""
