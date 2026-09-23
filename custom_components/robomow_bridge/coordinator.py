@@ -13,7 +13,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .alarms import STOP_REASONS
+from .alarms import stop_reason_code
 from .api import RobomowApi, RobomowApiError, RobomowAuthError
 from .const import (
     BLE_ON_VALUE,
@@ -24,23 +24,24 @@ from .const import (
     KEY_BLE_STATE,
     KEY_SCHEDULE,
     ONCE_EVERY_N_CYCLES,
+    SCHEDULE_MODE_KEYS,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
-# German number format: "." thousands separator, "," decimal point.
+# German number format: "." is the thousands separator, "," the decimal point.
 _THOUSANDS = re.compile(r"^\d{1,3}(\.\d{3})+$")
-
 
 def parse_number(raw: object) -> float | None:
     """Parse the bridge's German-formatted numbers.
 
-    The bridge mixes German formatting into machine values, so float()
-    alone would turn "3.357 V" into 3357 V. Three digits after a dot are
+    The bridge mixes German formatting into machine values, so a plain
+    float() would turn "3.357 V" into 3357 V. Three digits after a dot are
     read as a thousands separator, anything else as a decimal point.
     """
     if raw is None:
         return None
+
     text = str(raw).replace("\xa0", " ").strip()
     if not text:
         return None
@@ -62,7 +63,6 @@ def parse_number(raw: object) -> float | None:
         return float(text)
     except (TypeError, ValueError):
         return None
-
 
 class RobomowCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Poll the bridge, serialise commands and hold on-demand payloads."""
@@ -87,9 +87,8 @@ class RobomowCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._once_cache: dict[str, Any] = {}
         self._force_once = False
         self._command_lock = asyncio.Lock()
-        # Filled only when the user presses the telemetry button.
+        # Filled only when the user presses the corresponding button.
         self.telemetry: dict[str, Any] = {}
-        # Filled only when the user presses the events button.
         self.events: list[dict[str, Any]] = []
 
     async def _async_update_data(self) -> dict[str, Any]:
@@ -117,7 +116,7 @@ class RobomowCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         return {"renew": renew, "once": self._once_cache}
 
-    # ------------------------------------------------------------ state
+    # ---------------------------------------------------------------- state
 
     @property
     def renew(self) -> dict[str, Any]:
@@ -132,43 +131,35 @@ class RobomowCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     @property
     def ble_connected(self) -> bool:
         """Return True when the bridge reports an active BLE link."""
-        value = self.renew.get(KEY_BLE_STATE, "")
-        return str(value).lower() == BLE_ON_VALUE
+        return str(self.renew.get(KEY_BLE_STATE, "")).lower() == BLE_ON_VALUE
+
+    @property
+    def schedule_raw(self) -> int | None:
+        """Return the numeric value of /once key "50"."""
+        raw = self.once.get(KEY_SCHEDULE, "0")
+        try:
+            return int(str(raw).strip())
+        except (TypeError, ValueError):
+            return None
 
     @property
     def schedule_on(self) -> bool:
-        """Return True when the weekly schedule is enabled.
-
-        /once key "50" carries the state in bits 4-5, so the value is 96
-        when off and 52 / 56 / 60 for daily, 1x and 2x weekly.
-        """
-        raw = self.once.get(KEY_SCHEDULE, "0")
-        try:
-            mode = int(str(raw).strip())
-        except (TypeError, ValueError):
-            return False
-        return mode in (52, 56, 60)
+        """Return True when the weekly schedule is enabled."""
+        return self.schedule_raw in SCHEDULE_MODE_KEYS and self.schedule_raw != 96
 
     @property
     def schedule_mode(self) -> str:
         """Return the schedule mode as a translation key."""
-        raw = self.once.get(KEY_SCHEDULE, "0")
-        try:
-            mode = int(str(raw).strip())
-        except (TypeError, ValueError):
+        raw = self.schedule_raw
+        if raw is None:
             return "unknown"
-        return {
-            96: "off",
-            52: "daily",
-            56: "weekly_1x",
-            60: "weekly_2x",
-        }.get(mode, "unknown")
+        return SCHEDULE_MODE_KEYS.get(raw, "unknown")
 
     def _publish(self, renew: dict[str, Any]) -> None:
         """Push a freshly fetched /renew payload to the entities."""
         self.async_set_updated_data({"renew": renew, "once": self._once_cache})
 
-    # --------------------------------------------------------- commands
+    # ------------------------------------------------------------- commands
 
     async def async_ensure_ble(self) -> bool:
         """Switch BLE on and wait until the bridge confirms the link."""
@@ -212,7 +203,7 @@ class RobomowCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if refresh:
             await self.async_refresh()
 
-    # ------------------------------------------------------ on demand
+    # ------------------------------------------------------------ on demand
 
     async def async_fetch_telemetry(self) -> bool:
         """Fetch /renewtelem once. Never called from the polling cycle."""
@@ -224,7 +215,8 @@ class RobomowCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         parsed: dict[str, Any] = {}
         for key, value in raw.items():
-            parsed[str(key)] = parse_number(value) if str(key).isdigit() else value
+            key = str(key)
+            parsed[key] = parse_number(value) if key.isdigit() else value
         self.telemetry = parsed
         self.async_update_listeners()
         return True
@@ -240,31 +232,29 @@ class RobomowCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         events: list[dict[str, Any]] = []
         index = 0
         while True:
-            date = raw.get(f"m{index + 1}")
-            if date is None:
-                break
-            if not re.match(r"^\d{2}\.\d{2}\.\d{4}$", str(date)):
+            if f"m{index + 1}" not in raw:
                 break
 
             reason_raw = str(raw.get(f"m{index + 2}", "")).replace("\xa0", " ").strip()
-            code = None
-            match = re.match(r"^(\d+)", reason_raw)
-            if match:
-                code = int(match.group(1))
+            date = str(raw.get(f"m{index + 1}", "")).strip()
+            if not re.match(r"^\d{2}\.\d{2}\.\d{4}$", date):
+                break
 
             events.append(
                 {
-                    "date": str(date),
-                    "time": str(raw.get(f"m{index + 1}", "")),
+                    "date": date,
+                    "time": str(raw.get(f"m{index}", "")).strip(),
                     "reason": reason_raw,
-                    "reason_key": STOP_REASONS.get(code) if code is not None else None,
-                    "code": code,
-                    "zone": str(raw.get(f"m{index + 5}", "")),
-                    "activity": str(raw.get(f"m{index + 4}", "")),
+                    "code": stop_reason_code(reason_raw),
+                    "activity": str(raw.get(f"m{index + 4}", "")).replace("\xa0", " ").strip(),
+                    "zone": str(raw.get(f"m{index + 5}", "")).strip(),
                     "battery": parse_number(raw.get(f"m{index + 3}")),
                 }
             )
             index += 7
+
+            if len(events) >= 10:
+                break
 
         self.events = events
         self.async_update_listeners()
