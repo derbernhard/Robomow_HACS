@@ -23,7 +23,7 @@ class RobomowAuthError(RobomowApiError):
 
 
 class RobomowApi:
-    """Minimal wrapper around the bridge's /renew, /once and /setcmds endpoints."""
+    """Wrapper around the bridge's JSON endpoints."""
 
     def __init__(
         self, session: ClientSession, host: str, username: str, password: str
@@ -33,11 +33,11 @@ class RobomowApi:
         self._base = f"http://{host.strip().rstrip('/')}"
         self._auth = BasicAuth(username, password)
 
-    async def _get(self, path: str) -> Any:
+    async def _get(self, path: str, timeout: int = REQUEST_TIMEOUT) -> Any:
         """Perform a GET request and decode the payload."""
         url = f"{self._base}{path}"
         try:
-            async with asyncio.timeout(REQUEST_TIMEOUT):
+            async with asyncio.timeout(timeout):
                 response = await self._session.get(url, auth=self._auth)
                 response.raise_for_status()
                 if "json" in response.headers.get("Content-Type", ""):
@@ -70,6 +70,20 @@ class RobomowApi:
         data = await self._get("/once")
         if not isinstance(data, dict):
             raise RobomowApiError("/once did not return a JSON object")
+        return data
+
+    async def telemetry(self) -> dict[str, Any]:
+        """Return /renewtelem -- a large payload, fetched on demand only."""
+        data = await self._get("/renewtelem", timeout=30)
+        if not isinstance(data, dict):
+            raise RobomowApiError("/renewtelem did not return a JSON object")
+        return data
+
+    async def oncemisc(self) -> dict[str, Any]:
+        """Return /oncemisc -- a large payload, fetched on demand only."""
+        data = await self._get("/oncemisc", timeout=30)
+        if not isinstance(data, dict):
+            raise RobomowApiError("/oncemisc did not return a JSON object")
         return data
 
     async def command(self, key: int, value: int) -> None:

@@ -41,7 +41,6 @@ CMD_BLE = 250
 
 KEY_BLE_STATE = "cBLEsw"
 KEY_SCHEDULE = "50"
-BLE_ON_VALUE = "lightgreen"
 
 # How long to wait for the BLE link before sending a command that needs it.
 BLE_WAIT_SECONDS = 15

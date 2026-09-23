@@ -27,7 +27,7 @@ async def async_setup_entry(
 class RobomowRainDisabled(RobomowEntity, BinarySensorEntity):
     """True while the schedule is suspended because of rain."""
 
-    _attr_name = "Schedule disabled by rain"
+    _attr_translation_key = "rain_disabled"
     _attr_icon = "mdi:weather-pouring"
 
     def __init__(

@@ -27,52 +27,53 @@ from .entity import RobomowEntity
 
 @dataclass(frozen=True, kw_only=True)
 class RobomowButtonDescription(ButtonEntityDescription):
-    """Describe one command button."""
+    """Describe one button."""
 
-    command: int
-    value: int
+    command: int | None = None
+    value: int | None = None
     refresh: bool = True
+    on_demand: str | None = None
 
 
 BUTTONS: tuple[RobomowButtonDescription, ...] = (
     RobomowButtonDescription(
         key="mow_edge",
-        name="Mow edge",
+        translation_key="mow_edge",
         icon="mdi:shape-rectangle-plus",
         command=CMD_MOW_EDGE,
         value=1,
     ),
     RobomowButtonDescription(
         key="mow_area",
-        name="Mow area",
+        translation_key="mow_area",
         icon="mdi:texture-box",
         command=CMD_MOW_AREA,
         value=1,
     ),
     RobomowButtonDescription(
         key="go_home",
-        name="Go home",
+        translation_key="go_home",
         icon="mdi:home-variant-outline",
         command=CMD_GO_HOME,
         value=1,
     ),
     RobomowButtonDescription(
         key="stop",
-        name="Stop",
+        translation_key="stop",
         icon="mdi:stop-circle-outline",
         command=CMD_STOP,
         value=1,
     ),
     RobomowButtonDescription(
         key="start",
-        name="Start",
+        translation_key="start",
         icon="mdi:play-circle-outline",
         command=CMD_STOP,
         value=0,
     ),
     RobomowButtonDescription(
         key="change_zone",
-        name="Change zone",
+        translation_key="change_zone",
         icon="mdi:checkbox-intermediate-variant",
         command=CMD_STOP,
         value=1,
@@ -80,7 +81,7 @@ BUTTONS: tuple[RobomowButtonDescription, ...] = (
     # Manual driving -- no refresh after every press, they are used repeatedly.
     RobomowButtonDescription(
         key="forward",
-        name="Forward",
+        translation_key="forward",
         icon="mdi:arrow-up-bold-box",
         command=CMD_FORWARD,
         value=1,
@@ -89,7 +90,7 @@ BUTTONS: tuple[RobomowButtonDescription, ...] = (
     ),
     RobomowButtonDescription(
         key="backward",
-        name="Backward",
+        translation_key="backward",
         icon="mdi:arrow-down-bold-box",
         command=CMD_BACKWARD,
         value=90,
@@ -98,7 +99,7 @@ BUTTONS: tuple[RobomowButtonDescription, ...] = (
     ),
     RobomowButtonDescription(
         key="left",
-        name="Left",
+        translation_key="left",
         icon="mdi:arrow-left-bold-box",
         command=CMD_LEFT,
         value=-120,
@@ -107,12 +108,27 @@ BUTTONS: tuple[RobomowButtonDescription, ...] = (
     ),
     RobomowButtonDescription(
         key="right",
-        name="Right",
+        translation_key="right",
         icon="mdi:arrow-right-bold-box",
         command=CMD_RIGHT,
         value=35,
         refresh=False,
         entity_category=EntityCategory.CONFIG,
+    ),
+    # On-demand payloads -- never fetched by the polling cycle.
+    RobomowButtonDescription(
+        key="refresh_telemetry",
+        translation_key="refresh_telemetry",
+        icon="mdi:battery-heart-variant",
+        on_demand="telemetry",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    RobomowButtonDescription(
+        key="refresh_events",
+        translation_key="refresh_events",
+        icon="mdi:history",
+        on_demand="events",
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
 )
 
@@ -146,12 +162,23 @@ class RobomowButton(RobomowEntity, ButtonEntity):
         self._lock = asyncio.Lock()
 
     async def async_press(self) -> None:
-        """Send the command, dropping presses while one is in flight."""
+        """Run the command, dropping presses while one is in flight."""
         if self._lock.locked():
             return
         async with self._lock:
+            description = self.entity_description
+
+            if description.on_demand == "telemetry":
+                await self.coordinator.async_fetch_telemetry()
+                return
+            if description.on_demand == "events":
+                await self.coordinator.async_fetch_events()
+                return
+
+            if description.command is None or description.value is None:
+                return
             await self.coordinator.async_command(
-                self.entity_description.command,
-                self.entity_description.value,
-                refresh=self.entity_description.refresh,
+                description.command,
+                description.value,
+                refresh=description.refresh,
             )

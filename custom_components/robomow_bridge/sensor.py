@@ -20,7 +20,8 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .coordinator import RobomowCoordinator
+from .alarms import stop_reason_code, stop_reason_key
+from .coordinator import RobomowCoordinator, parse_number
 from .entity import RobomowEntity
 
 
@@ -36,7 +37,7 @@ class RobomowSensorDescription(SensorEntityDescription):
 SENSORS: tuple[RobomowSensorDescription, ...] = (
     RobomowSensorDescription(
         key="battery",
-        name="Battery",
+        translation_key="battery",
         source="renew",
         api_key="0",
         numeric=True,
@@ -46,49 +47,49 @@ SENSORS: tuple[RobomowSensorDescription, ...] = (
     ),
     RobomowSensorDescription(
         key="status",
-        name="Status",
+        translation_key="status",
         source="renew",
-        api_key="cDSnear",
+        api_key="6",
         icon="mdi:mower",
     ),
     RobomowSensorDescription(
         key="current_zone",
-        name="Current zone",
+        translation_key="current_zone",
         source="renew",
         api_key="7",
         icon="mdi:texture",
     ),
     RobomowSensorDescription(
-        key="stop_reason",
-        name="Stop reason",
-        source="renew",
-        api_key="6",
-        icon="mdi:stop-circle-outline",
-    ),
-    RobomowSensorDescription(
-        key="next_activity",
-        name="Next activity",
+        key="next_zone",
+        translation_key="next_zone",
         source="renew",
         api_key="8",
-        icon="mdi:calendar-arrow-right",
+        icon="mdi:map-marker-path",
+    ),
+    RobomowSensorDescription(
+        key="dock_proximity",
+        translation_key="dock_proximity",
+        source="renew",
+        api_key="cDSnear",
+        icon="mdi:home-import-outline",
     ),
     RobomowSensorDescription(
         key="next_start",
-        name="Next start",
+        translation_key="next_start",
         source="renew",
         api_key="5",
         icon="mdi:skip-next-circle-outline",
     ),
     RobomowSensorDescription(
         key="time_left",
-        name="Time left",
+        translation_key="time_left",
         source="renew",
         api_key="11",
         icon="mdi:timer-outline",
     ),
     RobomowSensorDescription(
         key="percentage_cut",
-        name="Percentage cut",
+        translation_key="percentage_cut",
         source="renew",
         api_key="12",
         numeric=True,
@@ -98,14 +99,28 @@ SENSORS: tuple[RobomowSensorDescription, ...] = (
     ),
     RobomowSensorDescription(
         key="moisture",
-        name="Moisture",
+        translation_key="moisture",
         source="renew",
         api_key="13",
         icon="mdi:water-outline",
     ),
     RobomowSensorDescription(
+        key="schedule_mode",
+        translation_key="schedule_mode",
+        source="once",
+        api_key="_schedule_mode",
+        icon="mdi:calendar",
+    ),
+    RobomowSensorDescription(
+        key="last_stop_reason",
+        translation_key="last_stop_reason",
+        source="renew",
+        api_key="6",
+        icon="mdi:stop-circle-outline",
+    ),
+    RobomowSensorDescription(
         key="rssi",
-        name="RSSI",
+        translation_key="rssi",
         source="renew",
         api_key="rssi",
         numeric=True,
@@ -116,10 +131,10 @@ SENSORS: tuple[RobomowSensorDescription, ...] = (
         entity_registry_enabled_default=False,
     ),
     RobomowSensorDescription(
-        key="ble_state",
-        name="BLE state",
+        key="serial_number",
+        translation_key="serial_number",
         source="renew",
-        api_key="blesw",
+        api_key="sernr",
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
     ),
@@ -155,20 +170,24 @@ class RobomowSensor(RobomowEntity, SensorEntity):
 
     @property
     def native_value(self) -> Any:
-        """Return the current value, coerced to a number where required."""
-        raw = (
-            (self.coordinator.data or {})
-            .get(self.entity_description.source, {})
-            .get(self.entity_description.api_key)
+        """Return the current value."""
+        description = self.entity_description
+
+        if description.api_key == "_schedule_mode":
+            return self.coordinator.schedule_mode
+
+        raw = (self.coordinator.data or {}).get(description.source, {}).get(
+            description.api_key
         )
 
         if raw is None or raw == "":
             return None
 
-        if not self.entity_description.numeric:
-            return raw
+        if description.numeric:
+            return parse_number(raw)
 
-        try:
-            return float(str(raw).strip().replace("%", "").replace(",", "."))
-        except (TypeError, ValueError):
-            return None
+        if description.key == "last_stop_reason":
+            # Present the numeric code as a translation key when known.
+            return stop_reason_key(raw) or stop_reason_code(raw) or raw
+
+        return str(raw).replace("\xa0", " ").strip()

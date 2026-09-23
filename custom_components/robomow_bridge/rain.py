@@ -131,9 +131,7 @@ class RobomowRainManager:
                     CMD_GO_HOME, 1, require_ble=True, refresh=False
                 )
             if self.coordinator.schedule_on:
-                await self.coordinator.async_command(
-                    CMD_SCHEDULE, 0, require_ble=True
-                )
+                await self.coordinator.async_command(CMD_SCHEDULE, 0, require_ble=True)
                 await self._set_flag(True)
         except RobomowApiError as err:
             _LOGGER.error("Could not react to rain: %s", err)

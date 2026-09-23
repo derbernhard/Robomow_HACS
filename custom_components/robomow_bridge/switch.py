@@ -32,7 +32,7 @@ async def async_setup_entry(
 class RobomowBleSwitch(RobomowEntity, SwitchEntity):
     """Control the BLE link between bridge and mower."""
 
-    _attr_name = "BLE"
+    _attr_translation_key = "ble"
     _attr_icon = "mdi:bluetooth"
 
     def __init__(self, coordinator: RobomowCoordinator, entry: ConfigEntry) -> None:
@@ -56,7 +56,7 @@ class RobomowBleSwitch(RobomowEntity, SwitchEntity):
 class RobomowScheduleSwitch(RobomowEntity, SwitchEntity):
     """Enable or disable the mower's weekly schedule."""
 
-    _attr_name = "Weekly schedule"
+    _attr_translation_key = "weekly_schedule"
     _attr_icon = "mdi:calendar"
 
     def __init__(self, coordinator: RobomowCoordinator, entry: ConfigEntry) -> None:
