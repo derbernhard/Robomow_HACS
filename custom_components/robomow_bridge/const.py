@@ -39,8 +39,12 @@ CMD_RIGHT = 202
 CMD_BACKWARD = 203
 CMD_BLE = 250
 
+# /renew keys we read.
 KEY_BLE_STATE = "cBLEsw"
 KEY_SCHEDULE = "50"
+
+# /renew key "cBLEsw" reports this value while the BLE link is up.
+BLE_ON_VALUE = "lightgreen"
 
 # How long to wait for the BLE link before sending a command that needs it.
 BLE_WAIT_SECONDS = 15
