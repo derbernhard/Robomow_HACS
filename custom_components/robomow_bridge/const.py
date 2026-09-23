@@ -41,16 +41,16 @@ CMD_BLE = 250
 
 # /renew keys the integration reads.
 KEY_BLE_STATE = "cBLEsw"
-KEY_SCHEDULE = "50"
 
-# /once key "50" carries the weekly schedule state in two bits:
-# 96 = off, 52 = daily, 56 = once a week, 60 = twice a week.
-SCHEDULE_MODE_KEYS: dict[int, str] = {
-    96: "off",
-    52: "daily",
-    56: "weekly_1x",
-    60: "weekly_2x",
-}
+# /once key that carries the weekly schedule state, verified on the device:
+# "1" while the schedule runs, "0" while it is switched off.
+#
+# Do NOT read this from /once keys "43" or "50". Both carry the same counter
+# value, which is "0", "95", "96", "126" or "127" depending on the last edit
+# made in the bridge web UI -- it does not describe the on/off state, and
+# "0" occurs both with the schedule running and with it switched off.
+KEY_SCHEDULE_STATE = "56"
+SCHEDULE_ON_VALUE = "1"
 
 # /renew key "cBLEsw" reports this value while the BLE link is up.
 BLE_ON_VALUE = "lightgreen"
