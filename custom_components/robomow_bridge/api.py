@@ -12,15 +12,13 @@ from aiohttp import BasicAuth, ClientError, ClientResponseError, ClientSession
 _LOGGER = logging.getLogger(__name__)
 
 REQUEST_TIMEOUT = 15
-
+LARGE_REQUEST_TIMEOUT = 30
 
 class RobomowApiError(Exception):
     """The bridge could not be reached or returned an error."""
 
-
 class RobomowAuthError(RobomowApiError):
     """The bridge rejected the supplied credentials."""
-
 
 class RobomowApi:
     """Wrapper around the bridge's JSON endpoints."""
@@ -30,7 +28,7 @@ class RobomowApi:
     ) -> None:
         """Initialise the client."""
         self._session = session
-        self._base = f"http://{host.strip().rstrip('/')}"
+        self._base = f"[{host.strip().rstrip(](http://{host.strip().rstrip()'/')}"
         self._auth = BasicAuth(username, password)
 
     async def _get(self, path: str, timeout: int = REQUEST_TIMEOUT) -> Any:
@@ -74,14 +72,14 @@ class RobomowApi:
 
     async def telemetry(self) -> dict[str, Any]:
         """Return /renewtelem -- a large payload, fetched on demand only."""
-        data = await self._get("/renewtelem", timeout=30)
+        data = await self._get("/renewtelem", timeout=LARGE_REQUEST_TIMEOUT)
         if not isinstance(data, dict):
             raise RobomowApiError("/renewtelem did not return a JSON object")
         return data
 
     async def oncemisc(self) -> dict[str, Any]:
         """Return /oncemisc -- a large payload, fetched on demand only."""
-        data = await self._get("/oncemisc", timeout=30)
+        data = await self._get("/oncemisc", timeout=LARGE_REQUEST_TIMEOUT)
         if not isinstance(data, dict):
             raise RobomowApiError("/oncemisc did not return a JSON object")
         return data
