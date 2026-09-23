@@ -35,5 +35,146 @@
         }
       }
     }
+  },
+  "entity": {
+    "sensor": {
+      "battery": {
+        "name": "Batterieladung"
+      },
+      "status": {
+        "name": "Status"
+      },
+      "current_zone": {
+        "name": "Aktuelle Zone"
+      },
+      "next_zone": {
+        "name": "Nächste Zone"
+      },
+      "dock_proximity": {
+        "name": "Abstand zur Ladestation"
+      },
+      "next_start": {
+        "name": "Nächster Start"
+      },
+      "time_left": {
+        "name": "Verbleibende Zeit"
+      },
+      "percentage_cut": {
+        "name": "Gemähte Fläche"
+      },
+      "moisture": {
+        "name": "Feuchtigkeit"
+      },
+      "schedule_mode": {
+        "name": "Programmmodus",
+        "state": {
+          "off": "Aus",
+          "daily": "Täglich",
+          "weekly_1x": "1× pro Woche",
+          "weekly_2x": "2× pro Woche",
+          "unknown": "Unbekannt"
+        }
+      },
+      "last_stop_reason": {
+        "name": "Letzter Stopgrund",
+        "state": {
+          "stop_button_pressed": "Stopptaste gedrückt",
+          "started_outside_plot": "Start außerhalb der Mähfläche",
+          "key_pressed_warmup": "Taste während der Aufwärmphase gedrückt",
+          "bumper_pressed_warmup": "Stoßfänger während der Aufwärmphase ausgelöst",
+          "front_wheel_problem_warmup": "Vorderrad-Problem in der Aufwärmphase",
+          "no_charging_voltage": "Keine Ladespannung erkannt",
+          "setup_stopped_base_test": "Einrichtung beim Basispositionstest gestoppt",
+          "setup_stopped_obstacle": "Einrichtung wegen Hindernis gestoppt",
+          "drive_overheat": "Antrieb überhitzt",
+          "base_problem": "Problem mit der Ladestation",
+          "drive_overheat_terminated": "Antrieb überhitzt, Vorgang abgebrochen",
+          "handle_lifted": "Tragebügel angehoben",
+          "handle_lifted_warmup": "Tragebügel in der Aufwärmphase angehoben",
+          "drive_overcurrent_scan": "Antriebsüberstrom beim Scannen",
+          "drive_overcurrent_manual": "Antriebsüberstrom im Handbetrieb",
+          "stuck_in_place": "Festgefahren",
+          "tilt_before_lifting": "Kippen erkannt",
+          "system_switch_off": "Systemschalter ausgeschaltet",
+          "mow_overheat": "Mähwerk überhitzt",
+          "mow_overcurrent": "Mähwerk-Überstrom",
+          "mow_overcurrent_remote": "Mähwerk-Überstrom bei Fernsteuerung",
+          "no_wire_signal": "Kein Drahtsignal während Automatik",
+          "mow_overheat_manual": "Mähwerk überhitzt im Handbetrieb",
+          "cross_outside": "Außerhalb der Begrenzung",
+          "front_wheel_problem": "Vorderrad-Problem",
+          "inactive_time": "Inaktive Zeit erreicht",
+          "mowing_time_reached": "Mähzeit in Zone erreicht",
+          "rain_detected": "Regen erkannt",
+          "edge_terminate_test": "Kantenabschlusstest beendet",
+          "remote_safety_button": "Sicherheitstaste der Fernsteuerung gedrückt",
+          "stop_button_manual": "Stopptaste im Handbetrieb gedrückt",
+          "auto_stopped_searching_base": "Automatik gestoppt, suche Basisstation",
+          "no_wire_signal_driving": "Kein Drahtsignal während der Fahrt",
+          "battery_discharge_time_exceeded": "Akkuentladezeit überschritten",
+          "going_to_base": "Gehe zur Ladestation",
+          "time_to_charge": "Zeit zum Laden",
+          "stopped_from_app": "Aus der App gestoppt",
+          "drive_overcurrent_scan_5": "Antriebsüberstrom beim Scannen"
+        }
+      },
+      "rssi": {
+        "name": "WLAN-Signalstärke"
+      },
+      "serial_number": {
+        "name": "Seriennummer"
+      }
+    },
+    "switch": {
+      "ble": {
+        "name": "Bluetooth"
+      },
+      "weekly_schedule": {
+        "name": "Wochenprogramm"
+      }
+    },
+    "binary_sensor": {
+      "rain_disabled": {
+        "name": "Wegen Regen pausiert"
+      }
+    },
+    "button": {
+      "mow_edge": {
+        "name": "Kante mähen"
+      },
+      "mow_area": {
+        "name": "Fläche mähen"
+      },
+      "go_home": {
+        "name": "Home"
+      },
+      "stop": {
+        "name": "Stop"
+      },
+      "start": {
+        "name": "Start"
+      },
+      "change_zone": {
+        "name": "Zone wechseln"
+      },
+      "forward": {
+        "name": "Vor"
+      },
+      "backward": {
+        "name": "Zurück"
+      },
+      "left": {
+        "name": "Links"
+      },
+      "right": {
+        "name": "Rechts"
+      },
+      "refresh_telemetry": {
+        "name": "Telemetrie aktualisieren"
+      },
+      "refresh_events": {
+        "name": "Ereignisse aktualisieren"
+      }
+    }
   }
 }
