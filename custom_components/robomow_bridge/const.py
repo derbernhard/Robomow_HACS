@@ -39,9 +39,18 @@ CMD_RIGHT = 202
 CMD_BACKWARD = 203
 CMD_BLE = 250
 
-# /renew keys we read.
+# /renew keys the integration reads.
 KEY_BLE_STATE = "cBLEsw"
 KEY_SCHEDULE = "50"
+
+# /once key "50" carries the weekly schedule state in two bits:
+# 96 = off, 52 = daily, 56 = once a week, 60 = twice a week.
+SCHEDULE_MODE_KEYS: dict[int, str] = {
+    96: "off",
+    52: "daily",
+    56: "weekly_1x",
+    60: "weekly_2x",
+}
 
 # /renew key "cBLEsw" reports this value while the BLE link is up.
 BLE_ON_VALUE = "lightgreen"
