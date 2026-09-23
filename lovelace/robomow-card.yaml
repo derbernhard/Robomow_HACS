@@ -1,6 +1,11 @@
-# Robomow MC500 -- Lovelace card for the robomow_bridge integration.
-# The four driving buttons use custom:button-card (install it via HACS);
-# replace them with plain "type: button" cards if you do not want that dependency.
+# Robomow MC500 -- Lovelace card for the robomow_bridge integration (0.6.0).
+#
+# Entity names come from the integration's translations, so this card only
+# adds the icon and (where it reads better on the dashboard) a short label.
+#
+# The four driving buttons use custom:button-card (install via HACS) because
+# they need a hold action with repeat. Replace them with plain
+# "type: button" cards if you do not want that dependency.
 type: vertical-stack
 cards:
   - type: entities
@@ -10,47 +15,37 @@ cards:
     entities:
       - entity: switch.robomow_ble
         icon: mdi:bluetooth
-        name: Bluetooth
       - entity: sensor.robomow_battery
         icon: mdi:battery-medium
-        name: Batterieladung
       - entity: sensor.robomow_status
         icon: mdi:mower
-        name: Status
       - entity: sensor.robomow_current_zone
         icon: mdi:texture
-        name: Aktuelle Zone
-      - entity: sensor.robomow_stop_reason
+      - entity: sensor.robomow_last_stop_reason
         icon: mdi:stop-circle-outline
-        name: Stopgrund
       - entity: sensor.robomow_time_left
         icon: mdi:timer-outline
-        name: Verbleibende Zeit
       - entity: sensor.robomow_next_start
         icon: mdi:skip-next-circle-outline
-        name: Nächster Start
       - entity: sensor.robomow_moisture
         icon: mdi:water-outline
-        name: Feuchtigkeit
       - entity: sensor.robomow_percentage_cut
         icon: mdi:grass
-        name: Gemähte Fläche
+      - entity: sensor.robomow_schedule_mode
+        icon: mdi:calendar
       - entity: sensor.robomow_rssi
         icon: mdi:wifi
-        name: Wlan Signalstärke
       - entity: switch.robomow_weekly_schedule
-        icon: mdi:calendar
-        name: Wochenprogramm
+        icon: mdi:calendar-check
       - entity: binary_sensor.robomow_schedule_disabled_by_rain
         icon: mdi:weather-pouring
-        name: Wegen Regen pausiert
   - type: horizontal-stack
     cards:
       - show_name: true
         show_icon: true
         type: button
         icon: mdi:shape-rectangle-plus
-        name: Kante mähen
+        name: Kante m\u00e4hen
         tap_action:
           action: perform-action
           perform_action: button.press
@@ -70,7 +65,7 @@ cards:
         show_icon: true
         type: button
         icon: mdi:texture-box
-        name: Fläche mähen
+        name: Fl\u00e4che m\u00e4hen
         tap_action:
           action: perform-action
           perform_action: button.press
@@ -108,7 +103,7 @@ cards:
         show_icon: true
         type: button
         icon: mdi:stop-circle-outline
-        name: Stopp
+        name: Stop
         tap_action:
           action: perform-action
           perform_action: button.press
@@ -118,7 +113,9 @@ cards:
           action: perform-action
           perform_action: homeassistant.update_entity
           target:
-            entity_id: sensor.robomow_status
+            entity_id:
+              - sensor.robomow_status
+              - sensor.robomow_last_stop_reason
   - type: horizontal-stack
     cards:
       - show_name: true
@@ -141,7 +138,7 @@ cards:
         show_icon: true
         type: custom:button-card
         icon: mdi:arrow-down-bold-box
-        name: zurück
+        name: zur\u00fcck
         tap_action:
           action: perform-action
           perform_action: button.press
@@ -169,3 +166,15 @@ cards:
           repeat: 1000
           target:
             entity_id: button.robomow_right
+  # On-demand payloads -- these two buttons fetch /renewtelem and /oncemisc.
+  # They are diagnostics: only add them if you actually want to poke them.
+  - type: entities
+    title: Diagnose
+    show_header_toggle: false
+    entities:
+      - entity: button.robomow_refresh_telemetry
+        icon: mdi:battery-heart-variant
+      - entity: button.robomow_refresh_events
+        icon: mdi:history
+      - entity: sensor.robomow_serial_number
+        icon: mdi:identifier
