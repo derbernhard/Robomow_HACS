@@ -24,7 +24,6 @@ from .alarms import stop_reason_code, stop_reason_key
 from .coordinator import RobomowCoordinator, parse_number
 from .entity import RobomowEntity
 
-
 @dataclass(frozen=True, kw_only=True)
 class RobomowSensorDescription(SensorEntityDescription):
     """Describe one value read from the bridge."""
@@ -33,7 +32,6 @@ class RobomowSensorDescription(SensorEntityDescription):
     api_key: str
     numeric: bool = False
     virtual: bool = False
-
 
 SENSORS: tuple[RobomowSensorDescription, ...] = (
     RobomowSensorDescription(
@@ -142,7 +140,6 @@ SENSORS: tuple[RobomowSensorDescription, ...] = (
     ),
 )
 
-
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -153,7 +150,6 @@ async def async_setup_entry(
     async_add_entities(
         RobomowSensor(coordinator, entry, description) for description in SENSORS
     )
-
 
 class RobomowSensor(RobomowEntity, SensorEntity):
     """A single value read from the bridge."""
@@ -194,7 +190,7 @@ class RobomowSensor(RobomowEntity, SensorEntity):
             code = stop_reason_code(raw)
             return f"code_{code}" if code is not None else str(raw)
 
-        return str(raw).replace("\\xa0", " ").strip()
+        return str(raw).replace("\xa0", " ").strip()
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
@@ -205,19 +201,18 @@ class RobomowSensor(RobomowEntity, SensorEntity):
         if not raw:
             return None
         self._attr_extra_state_attributes = {
-            "raw": str(raw).replace("\\xa0", " ").strip(),
+            "raw": str(raw).replace("\xa0", " ").strip(),
             "minutes": _duration_to_minutes(raw),
         }
         return self._attr_extra_state_attributes
-
 
 def _duration_to_minutes(raw: object) -> int | None:
     """Turn the bridge's '1 Std.  5 Minuten' into a number of minutes."""
     import re
 
-    text = str(raw).replace("\\xa0", " ")
-    hours = re.search(r"(\\d+)\\s*Std", text)
-    minutes = re.search(r"(\\d+)\\s*Min", text)
+    text = str(raw).replace("\xa0", " ")
+    hours = re.search(r"(\d+)\s*Std", text)
+    minutes = re.search(r"(\d+)\s*Min", text)
     if not hours and not minutes:
         return None
     return int(hours.group(1) if hours else 0) * 60 + int(
