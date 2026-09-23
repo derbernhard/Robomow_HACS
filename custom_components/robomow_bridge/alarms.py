@@ -52,7 +52,6 @@ STOP_REASONS: dict[int, str] = {
     72: "drive_overcurrent_scan_5",
 }
 
-
 def stop_reason_code(raw: object) -> int | None:
     """Extract the leading numeric code from a bridge stop-reason string."""
     if raw is None:
@@ -64,7 +63,6 @@ def stop_reason_code(raw: object) -> int | None:
         return int(text.split(" ", 1)[0])
     except (TypeError, ValueError):
         return None
-
 
 def stop_reason_key(raw: object) -> str | None:
     """Map a raw stop reason to its translation key, if the code is known."""
