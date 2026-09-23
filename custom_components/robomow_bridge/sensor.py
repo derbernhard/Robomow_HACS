@@ -32,6 +32,7 @@ class RobomowSensorDescription(SensorEntityDescription):
     source: str
     api_key: str
     numeric: bool = False
+    virtual: bool = False
 
 
 SENSORS: tuple[RobomowSensorDescription, ...] = (
@@ -108,7 +109,8 @@ SENSORS: tuple[RobomowSensorDescription, ...] = (
         key="schedule_mode",
         translation_key="schedule_mode",
         source="once",
-        api_key="_schedule_mode",
+        api_key="",
+        virtual=True,
         icon="mdi:calendar",
     ),
     RobomowSensorDescription(
@@ -173,13 +175,12 @@ class RobomowSensor(RobomowEntity, SensorEntity):
         """Return the current value."""
         description = self.entity_description
 
-        if description.api_key == "_schedule_mode":
+        if description.virtual:
             return self.coordinator.schedule_mode
 
         raw = (self.coordinator.data or {}).get(description.source, {}).get(
             description.api_key
         )
-
         if raw is None or raw == "":
             return None
 
@@ -187,7 +188,38 @@ class RobomowSensor(RobomowEntity, SensorEntity):
             return parse_number(raw)
 
         if description.key == "last_stop_reason":
-            # Present the numeric code as a translation key when known.
-            return stop_reason_key(raw) or stop_reason_code(raw) or raw
+            key = stop_reason_key(raw)
+            if key is not None:
+                return key
+            code = stop_reason_code(raw)
+            return f"code_{code}" if code is not None else str(raw)
 
-        return str(raw).replace("\xa0", " ").strip()
+        return str(raw).replace("\\xa0", " ").strip()
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Expose the raw text and a parsed duration where useful."""
+        if self.entity_description.key != "time_left":
+            return None
+        raw = (self.coordinator.data or {}).get("renew", {}).get("11")
+        if not raw:
+            return None
+        self._attr_extra_state_attributes = {
+            "raw": str(raw).replace("\\xa0", " ").strip(),
+            "minutes": _duration_to_minutes(raw),
+        }
+        return self._attr_extra_state_attributes
+
+
+def _duration_to_minutes(raw: object) -> int | None:
+    """Turn the bridge's '1 Std.  5 Minuten' into a number of minutes."""
+    import re
+
+    text = str(raw).replace("\\xa0", " ")
+    hours = re.search(r"(\\d+)\\s*Std", text)
+    minutes = re.search(r"(\\d+)\\s*Min", text)
+    if not hours and not minutes:
+        return None
+    return int(hours.group(1) if hours else 0) * 60 + int(
+        minutes.group(1) if minutes else 0
+    )
