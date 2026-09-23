@@ -70,11 +70,8 @@ class RobomowScheduleSwitch(RobomowEntity, SwitchEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        """Expose the raw /once value so the mode can be inspected."""
-        return {
-            "raw": self.coordinator.schedule_raw,
-            "mode": self.coordinator.schedule_mode,
-        }
+        """Expose the raw state value so it can be inspected in the UI."""
+        return {"raw": self.coordinator.schedule_raw}
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Enable the weekly schedule."""

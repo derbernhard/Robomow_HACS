@@ -22,15 +22,15 @@ from .const import (
     CMD_SCHEDULE,
     DOMAIN,
     KEY_BLE_STATE,
-    KEY_SCHEDULE,
+    KEY_SCHEDULE_STATE,
     ONCE_EVERY_N_CYCLES,
-    SCHEDULE_MODE_KEYS,
+    SCHEDULE_ON_VALUE,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
 # German number format: "." is the thousands separator, "," the decimal point.
-_THOUSANDS = re.compile(r"^\\d{1,3}(\\.\\d{3})+$")
+_THOUSANDS = re.compile(r"^\d{1,3}(\.\d{3})+$")
 
 
 def parse_number(raw: object) -> float | None:
@@ -43,11 +43,11 @@ def parse_number(raw: object) -> float | None:
     if raw is None:
         return None
 
-    text = str(raw).replace("\\xa0", " ").strip()
+    text = str(raw).replace("\xa0", " ").strip()
     if not text:
         return None
 
-    text = re.sub(r"[^0-9.,\\-]", "", text)
+    text = re.sub(r"[^0-9.,\-]", "", text)
     if not text:
         return None
 
@@ -136,26 +136,17 @@ class RobomowCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return str(self.renew.get(KEY_BLE_STATE, "")).lower() == BLE_ON_VALUE
 
     @property
-    def schedule_raw(self) -> int | None:
-        """Return the numeric value of /once key "50"."""
-        raw = self.once.get(KEY_SCHEDULE, "0")
-        try:
-            return int(str(raw).strip())
-        except (TypeError, ValueError):
+    def schedule_raw(self) -> str | None:
+        """Return the raw /once value of the schedule state key."""
+        raw = self.once.get(KEY_SCHEDULE_STATE)
+        if raw is None:
             return None
+        return str(raw).strip()
 
     @property
     def schedule_on(self) -> bool:
         """Return True when the weekly schedule is enabled."""
-        return self.schedule_raw in SCHEDULE_MODE_KEYS and self.schedule_raw != 96
-
-    @property
-    def schedule_mode(self) -> str:
-        """Return the schedule mode as a translation key."""
-        raw = self.schedule_raw
-        if raw is None:
-            return "unknown"
-        return SCHEDULE_MODE_KEYS.get(raw, "unknown")
+        return self.schedule_raw == SCHEDULE_ON_VALUE
 
     def _publish(self, renew: dict[str, Any]) -> None:
         """Push a freshly fetched /renew payload to the entities."""
@@ -237,9 +228,9 @@ class RobomowCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if f"m{index + 1}" not in raw:
                 break
 
-            reason_raw = str(raw.get(f"m{index + 2}", "")).replace("\\xa0", " ").strip()
+            reason_raw = str(raw.get(f"m{index + 2}", "")).replace("\xa0", " ").strip()
             date = str(raw.get(f"m{index + 1}", "")).strip()
-            if not re.match(r"^\\d{2}\\.\\d{2}\\.\\d{4}$", date):
+            if not re.match(r"^\d{2}\.\d{2}\.\d{4}$", date):
                 break
 
             events.append(
@@ -248,7 +239,7 @@ class RobomowCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     "time": str(raw.get(f"m{index}", "")).strip(),
                     "reason": reason_raw,
                     "code": stop_reason_code(reason_raw),
-                    "activity": str(raw.get(f"m{index + 4}", "")).replace("\\xa0", " ").strip(),
+                    "activity": str(raw.get(f"m{index + 4}", "")).replace("\xa0", " ").strip(),
                     "zone": str(raw.get(f"m{index + 5}", "")).strip(),
                     "battery": parse_number(raw.get(f"m{index + 3}")),
                 }
