@@ -10,7 +10,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN
 from .coordinator import RobomowCoordinator
 
-
 class RobomowEntity(CoordinatorEntity[RobomowCoordinator]):
     """Base entity tying everything to a single Robomow device."""
 
@@ -27,5 +26,5 @@ class RobomowEntity(CoordinatorEntity[RobomowCoordinator]):
             name="Robomow",
             manufacturer="Robomow",
             model="HTTP/BLE bridge",
-            configuration_url=f"http://{entry.data[CONF_HOST]}",
+            configuration_url=f"[{entry.data](http://{entry.data)[CONF_HOST]}",
         )
