@@ -15,7 +15,7 @@ from homeassistant.helpers.event import (
 from homeassistant.helpers.storage import Store
 
 from .api import RobomowApiError
-from .const import CMD_GO_HOME, CMD_SCHEDULE
+from .const import CMD_GO_HOME, CMD_SCHEDULE, SCHEDULE_SETTLE_SECONDS
 from .coordinator import RobomowCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -136,7 +136,9 @@ class RobomowRainManager:
                 await self.coordinator.async_command(
                     CMD_GO_HOME, 1, require_ble=True, refresh=False
                 )
-            await self.coordinator.async_command(CMD_SCHEDULE, 0, require_ble=True)
+            await self.coordinator.async_command(
+                CMD_SCHEDULE, 0, require_ble=True, settle=SCHEDULE_SETTLE_SECONDS
+            )
         except RobomowApiError as err:
             _LOGGER.error("Could not react to rain: %s", err)
             return
@@ -154,7 +156,9 @@ class RobomowRainManager:
         if not self.hass.states.is_state(self.entity_id, STATE_OFF):
             return
         try:
-            await self.coordinator.async_command(CMD_SCHEDULE, 1, require_ble=True)
+            await self.coordinator.async_command(
+                CMD_SCHEDULE, 1, require_ble=True, settle=SCHEDULE_SETTLE_SECONDS
+            )
         except RobomowApiError as err:
             _LOGGER.error("Could not re-enable the schedule: %s", err)
             return
