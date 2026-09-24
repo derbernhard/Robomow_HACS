@@ -27,12 +27,17 @@ PLATFORMS = [
 
 DATA_RAIN_MANAGERS = "robomow_bridge_rain_managers"
 
-# Bridge command keys (verified against the rest_command setup they replace).
+# Bridge command keys.
+#
+# Every entry below is verified against the bridge web UI, not against an old
+# rest_command setup -- the two disagree. CMD_SCHEDULE is 56: the UI writes
+# /setcmds?56=0 and /setcmds?56=1, while 50 is only a counter that /once
+# happens to report under the same number.
 CMD_MOW_EDGE = 1
 CMD_GO_HOME = 2
 CMD_MOW_AREA = 3
 CMD_STOP = 4
-CMD_SCHEDULE = 50
+CMD_SCHEDULE = 56          # <-- war 50
 CMD_FORWARD = 200
 CMD_LEFT = 201
 CMD_RIGHT = 202
