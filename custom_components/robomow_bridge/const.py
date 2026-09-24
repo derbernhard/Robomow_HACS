@@ -37,7 +37,7 @@ CMD_MOW_EDGE = 1
 CMD_GO_HOME = 2
 CMD_MOW_AREA = 3
 CMD_STOP = 4
-CMD_SCHEDULE = 56          # <-- war 50
+CMD_SCHEDULE = 56
 CMD_FORWARD = 200
 CMD_LEFT = 201
 CMD_RIGHT = 202
@@ -56,6 +56,10 @@ KEY_BLE_STATE = "cBLEsw"
 # "0" occurs both with the schedule running and with it switched off.
 KEY_SCHEDULE_STATE = "56"
 SCHEDULE_ON_VALUE = "1"
+
+# The bridge needs a moment before a value written via /setcmds shows up in
+# /once. Reading too early caches the previous state for a whole /once cycle.
+SCHEDULE_SETTLE_SECONDS = 5.0          # <-- neu
 
 # /renew key "cBLEsw" reports this value while the BLE link is up.
 BLE_ON_VALUE = "lightgreen"
