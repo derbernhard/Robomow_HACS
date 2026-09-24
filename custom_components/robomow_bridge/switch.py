@@ -9,7 +9,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import CMD_BLE, CMD_SCHEDULE
+from .const import CMD_BLE, CMD_SCHEDULE, SCHEDULE_SETTLE_SECONDS
 from .coordinator import RobomowCoordinator
 from .entity import RobomowEntity
 
@@ -75,8 +75,12 @@ class RobomowScheduleSwitch(RobomowEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Enable the weekly schedule."""
-        await self.coordinator.async_command(CMD_SCHEDULE, 1, require_ble=True)
+        await self.coordinator.async_command(
+            CMD_SCHEDULE, 1, require_ble=True, settle=SCHEDULE_SETTLE_SECONDS
+        )
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Disable the weekly schedule."""
-        await self.coordinator.async_command(CMD_SCHEDULE, 0, require_ble=True)
+        await self.coordinator.async_command(
+            CMD_SCHEDULE, 0, require_ble=True, settle=SCHEDULE_SETTLE_SECONDS
+        )
