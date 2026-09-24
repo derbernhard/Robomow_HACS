@@ -23,7 +23,6 @@ _LOGGER = logging.getLogger(__name__)
 STORE_VERSION = 1
 STORE_KEY_PREFIX = "robomow_bridge_rain_"
 
-
 class RobomowRainManager:
     """Replicate the rain automations: go home + schedule off, re-enable when dry."""
 
@@ -123,18 +122,25 @@ class RobomowRainManager:
             self._schedule_dry()
 
     async def _handle_wet(self) -> None:
-        """It started raining: send the mower home and suspend the schedule."""
+        """It started raining: send the mower home and suspend the schedule.
+
+        The command is sent unconditionally. 0 is a valid value for "schedule
+        off" whether or not the schedule was running, and making the command
+        depend on a state reading has silently skipped it in the past -- the
+        bridge reports the schedule state in /once key "56", and a stale or
+        missing value must never stop the mower from being parked.
+        """
         self._cancel_dry_timer()
         try:
             if self.go_home:
                 await self.coordinator.async_command(
                     CMD_GO_HOME, 1, require_ble=True, refresh=False
                 )
-            if self.coordinator.schedule_on:
-                await self.coordinator.async_command(CMD_SCHEDULE, 0, require_ble=True)
-                await self._set_flag(True)
+            await self.coordinator.async_command(CMD_SCHEDULE, 0, require_ble=True)
         except RobomowApiError as err:
             _LOGGER.error("Could not react to rain: %s", err)
+            return
+        await self._set_flag(True)
 
     async def _dry_timer_finished(self, _now: Any) -> None:
         """The drying delay elapsed."""
