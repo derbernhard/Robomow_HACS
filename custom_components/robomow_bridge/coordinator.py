@@ -25,6 +25,7 @@ from .const import (
     KEY_SCHEDULE_STATE,
     ONCE_EVERY_N_CYCLES,
     SCHEDULE_ON_VALUE,
+    SCHEDULE_SETTLE_SECONDS,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -183,6 +184,7 @@ class RobomowCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         *,
         require_ble: bool = False,
         refresh: bool = True,
+        settle: float | None = None,
     ) -> None:
         """Send a command, optionally bringing up BLE first."""
         async with self._command_lock:
@@ -194,6 +196,10 @@ class RobomowCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._force_once = True
 
         if refresh:
+            if settle is None:
+                settle = SCHEDULE_SETTLE_SECONDS if key == CMD_SCHEDULE else 0.0
+            if settle:
+                await asyncio.sleep(settle)
             await self.async_refresh()
 
     # ------------------------------------------------------------ on demand

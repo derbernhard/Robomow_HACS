@@ -57,7 +57,7 @@ def stop_reason_code(raw: object) -> int | None:
     """Extract the leading numeric code from a bridge stop-reason string."""
     if raw is None:
         return None
-    text = str(raw).replace("\\xa0", " ").strip()
+    text = str(raw).replace("\xa0", " ").strip()
     if not text:
         return None
     try:

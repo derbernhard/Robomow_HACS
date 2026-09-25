@@ -59,7 +59,7 @@ SCHEDULE_ON_VALUE = "1"
 
 # The bridge needs a moment before a value written via /setcmds shows up in
 # /once. Reading too early caches the previous state for a whole /once cycle.
-SCHEDULE_SETTLE_SECONDS = 5.0          # <-- neu
+SCHEDULE_SETTLE_SECONDS = 5.0
 
 # /renew key "cBLEsw" reports this value while the BLE link is up.
 BLE_ON_VALUE = "lightgreen"
